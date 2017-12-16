@@ -1,6 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
-import { OnInit } from '@angular/core/src/metadata/lifecycle_hooks';
 
 @Component({
   selector: 'app-root',
@@ -24,10 +23,17 @@ export class AppComponent implements OnInit {
     console.log('rawValue', this.formData.getRawValue());
   }
 
+  firstName = 'firstName';
+
   ngOnInit() {
     this.formData.reset({
-      'firstName': 'jimmy'
-    })
+      firstName: 'jimmy'
+    });
+
+    const firstNameCtonrol = this.formData.get('firstName');
+    if (!!firstNameCtonrol) {
+      firstNameCtonrol.setValidators(Validators.required);
+    }
   }
 
   constructor(private fb:FormBuilder) {}
