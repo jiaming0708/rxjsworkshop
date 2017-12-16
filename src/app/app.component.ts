@@ -4,7 +4,8 @@ import { tap, map, debounceTime, mergeMap } from 'rxjs/operators';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { defer } from 'rxjs/observable/defer';
 import { Observable } from 'rxjs/Observable';
-import { ValueTransformer } from '@angular/compiler/src/util';
+import { combineLatest } from 'rxjs/observable/combineLatest';
+import { startWith } from 'rxjs/operators/startWith';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +17,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     'firstName': [, Validators.required],
     'lastName': [, Validators.required],
     'phone': [, [Validators.required, Validators.minLength(8)]],
-    'search': [, Validators.required]
+    'search': [, Validators.required],
+    'canAPI': []
   });
 
   // formData = new FormGroup({
@@ -49,7 +51,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (!!firstNameCtonrol) {
       // firstNameCtonrol.setErrors({ 'must': true });
       firstNameCtonrol.valueChanges.pipe(this.toggle(this.formData))
-      .subscribe()  ;
+        .subscribe();
     }
   }
 
@@ -59,17 +61,40 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }).pipe(tap(value => console.log('send', value)));
 
-  searchResult$ = this.searchKeyword$.pipe(
+  canAPI$ = defer(() => {
+    if (this.formData) {
+      return this.formData.get('canAPI')!.valueChanges
+        .pipe(startWith(false));
+    }
+  })
+
+  // searchResult$ = this.searchKeyword$.pipe(
+  //   debounceTime(750),
+  //   mergeMap(value => this.http.jsonp(this.searchUrl(value, this.wikiUrl), 'callback')),
+  //   map((data: any[]) => {
+  //     if (!data) {
+  //       return [];
+  //     }
+  //     data.shift();
+  //     return data[0];
+  //   })
+  // );
+
+  searchResult$ = combineLatest(this.searchKeyword$, this.canAPI$,
+    (v1, v2) => ({ v1, v2 }))
+    .pipe(
     debounceTime(750),
-    mergeMap(value => this.http.jsonp(this.searchUrl(value, this.wikiUrl), 'callback')),
-    map((data: any[]) => {
-      if (!data) {
-        return [];
-      }
-      data.shift();
-      return data[0];
-    })
-  );
+    mergeMap(({ v1, v2 }) => this.http.jsonp<any[0]>(this.searchUrl(v1, this.wikiUrl), 'callback'), ({ v1, v2 }, data) => ({ v2, data })
+    ),
+    map(({ v2, data }) => {
+      console.log(v2, data);
+        if (data.length == 0 || v2) {
+          return [];
+        }
+        data.shift();
+        return data[0];
+      })
+    );
 
   search() {
     // const result = this.http.jsonp(this.searchUrl(this.searchKeyword$.value, this.wikiUrl), 'callback')
