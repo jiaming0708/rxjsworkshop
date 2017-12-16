@@ -2,7 +2,7 @@
   <div>
     <label for="firstname">first name</label>
     <input type="text" name="firstname" formControlName="firstName" />
-    <span class="error" *ngIf="formData.controls?.firstname?.errors">*require</span>
+    <span class="error" *ngIf="formData.controls?.firstName?.errors">*require</span>
   </div>
   <div>
     <label for="lastname">last naem</label>
@@ -12,7 +12,7 @@
   <div>
       <label for="phone">phone</label>
       <input type="phone" name="phone" formControlName="phone" required />
-      <!-- <span class="error" *ngIf="form.controls?.phone?.errors">*require</span> -->
+      <span class="error" *ngIf="formData.controls?.phone?.errors">*require</span>
   </div>
   <button type="submit" [disabled]="formData.invalid">Submit</button>
 </form>
