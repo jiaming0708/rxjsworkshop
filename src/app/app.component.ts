@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 
 @Component({
@@ -6,7 +6,7 @@ import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms'
   templateUrl: 'app.component.html',
   styles: []
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   formData = this.fb.group({
     'firstName': [, Validators.required],
     'lastName': [, Validators.required],
@@ -33,6 +33,13 @@ export class AppComponent implements OnInit {
     const firstNameCtonrol = this.formData.get('firstName');
     if (!!firstNameCtonrol) {
       firstNameCtonrol.setValidators(Validators.required);
+    }
+  }
+
+  ngAfterViewInit() {
+    const firstNameCtonrol = this.formData.get('firstName');
+    if (!!firstNameCtonrol) {
+      firstNameCtonrol.setErrors({ 'must': true });
     }
   }
 
