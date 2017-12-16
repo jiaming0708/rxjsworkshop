@@ -2,7 +2,7 @@
   <div>
     <label for="firstname">first name</label>
     <input type="text" name="firstname" formControlName="firstName" />
-    <span class="error" *ngIf="formData.controls?.firstName?.errors">*require</span>
+    <!-- <span class="error" [myError]="formData.get('firstName')">*require</span> -->
   </div>
   <div>
     <label for="lastname">last naem</label>
@@ -15,4 +15,16 @@
       <span class="error" *ngIf="formData.controls?.phone?.errors">*require</span>
   </div>
   <button type="submit" [disabled]="formData.invalid">Submit</button>
+
+  <div>
+    <label for="search">keyword</label>
+    <input name="search" type="text" formControlName="search">
+  </div>
+  <button type="button">search</button>
+
+  <ul>
+    <li *ngFor="let item of searchResult$ | async">
+      {{item}}
+    </li>
+  </ul>
 </form>
