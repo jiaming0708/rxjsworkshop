@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
+import { tap } from 'rxjs/operators'
 
 @Component({
   selector: 'app-root',
@@ -39,8 +40,22 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     const firstNameCtonrol = this.formData.get('firstName');
     if (!!firstNameCtonrol) {
-      firstNameCtonrol.setErrors({ 'must': true });
+      // firstNameCtonrol.setErrors({ 'must': true });
+      firstNameCtonrol.valueChanges.pipe(this.toggle(this.formData))
+      .subscribe()  ;
     }
+  }
+
+  toggle(form) {
+    return obs => obs.pipe(
+      tap(val => {
+        if (val === 'jimmy') {
+          form.get('lastName')!.enable();
+        } else {
+          form.get('lastName')!.disable();
+        }
+      })
+    );
   }
 
   constructor(private fb:FormBuilder) {}
