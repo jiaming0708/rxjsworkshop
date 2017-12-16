@@ -21,9 +21,10 @@
     <input name="search" type="text" formControlName="search">
   </div>
   <label>
-    <input type="checkbox" formControlName="canAPI">不打api
+    <input type="checkbox" formControlName="canAPI">打api
   </label>
   <button type="button">search</button>
+  <button type="button" (click)="reload()">reload</button>
 
   <ul>
     <li *ngFor="let item of searchResult$ | async">

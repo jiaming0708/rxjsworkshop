@@ -6,6 +6,9 @@ import { defer } from 'rxjs/observable/defer';
 import { Observable } from 'rxjs/Observable';
 import { combineLatest } from 'rxjs/observable/combineLatest';
 import { startWith } from 'rxjs/operators/startWith';
+import { shareReplay } from 'rxjs/operators/shareReplay';
+import { of } from 'rxjs/observable/of';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 @Component({
   selector: 'app-root',
@@ -59,14 +62,16 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (this.formData) {
       return this.formData.get('search')!.valueChanges;
     }
-  }).pipe(tap(value => console.log('send', value)));
+  });
 
   canAPI$ = defer(() => {
     if (this.formData) {
       return this.formData.get('canAPI')!.valueChanges
-        .pipe(startWith(false));
+        .pipe(startWith(!!this.formData.get('canAPI')!.value));
     }
   })
+
+  reload$: BehaviorSubject<boolean> = new BehaviorSubject(true);
 
   // searchResult$ = this.searchKeyword$.pipe(
   //   debounceTime(750),
@@ -80,21 +85,36 @@ export class AppComponent implements OnInit, AfterViewInit {
   //   })
   // );
 
-  searchResult$ = combineLatest(this.searchKeyword$, this.canAPI$,
-    (v1, v2) => ({ v1, v2 }))
+  searchResult$ = combineLatest(this.searchKeyword$, this.canAPI$, this.reload$,
+    (v1, canAPI) => ({ v1, canAPI }))
     .pipe(
+    map(({ v1, canAPI }) => {
+      console.log(v1, canAPI);
+      return ({ v1, canAPI });
+    }),
     debounceTime(750),
-    mergeMap(({ v1, v2 }) => this.http.jsonp<any[0]>(this.searchUrl(v1, this.wikiUrl), 'callback'), ({ v1, v2 }, data) => ({ v2, data })
+    mergeMap(({ v1, canAPI }) => {
+      console.log('call api', canAPI);
+      if (canAPI) {
+        return this.http.jsonp<any[0]>(this.searchUrl(v1, this.wikiUrl), 'callback')
+      }
+
+      return of([]);
+    } , ({ v1, canAPI }, data) => ( data)
     ),
-    map(({ v2, data }) => {
-      console.log(v2, data);
-        if (data.length == 0 || v2) {
-          return [];
-        }
-        data.shift();
-        return data[0];
-      })
-    );
+    map((data) => {
+      if (data.length == 0) {
+        return [];
+      }
+      data.shift();
+      return data[0];
+    }),
+    shareReplay()
+  );
+  
+  reload() {
+    this.reload$.next(true);
+  }
 
   search() {
     // const result = this.http.jsonp(this.searchUrl(this.searchKeyword$.value, this.wikiUrl), 'callback')
